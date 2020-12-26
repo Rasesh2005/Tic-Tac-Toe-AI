@@ -38,9 +38,9 @@ def gameOver(board, letter):
 
 def computeMove(board,depth=0,isComputer=True):
     if gameOver(board,'X'):
-        return (-10,None)
+        return (-10+depth,None)
     elif gameOver(board,'O'):
-        return (10,None)        
+        return (10-depth,None)        
     elif boardFilled(board):
         return (0,None)
     if isComputer:
@@ -79,9 +79,9 @@ def computeMove(board,depth=0,isComputer=True):
 def takeMove():
     try:
         move = 10
-        while move > 9 or move<1:
+        while move > 9 or move<1 :
             move = int(input("Enter The Index To Place Your X: "))
-            if move < 10:
+            if move < 10 and board[move-1]==' ':
                 return move-1
     except:
         print("Enter an Ineger from 1 to 9")

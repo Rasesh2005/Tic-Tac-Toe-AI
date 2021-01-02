@@ -36,7 +36,7 @@ def gameOver(board, letter):
     return rowCheck or diagonalCheck or columnCheck
 
 
-def computeMove(board,depth=0,isComputer=True):
+def computeMoveMinimax(board,depth=0,isComputer=True):
     if gameOver(board,'X'):
         return (-10+depth,None)
     elif gameOver(board,'O'):
@@ -44,14 +44,14 @@ def computeMove(board,depth=0,isComputer=True):
     elif boardFilled(board):
         return (0,None)
     if isComputer:
-        bestScore=-9
+        bestScore=-float("inf")
         bestMove=None
         possibleMoves=[i for i,el in enumerate(board) if el==' ']
         # print(possibleMoves)
         for move in possibleMoves:
             board[move]='O'
             # print(f'Computer Trying O at {move}')
-            score=computeMove(board,depth+1,False)[0]
+            score=computeMoveMinimax(board,depth+1,False)[0]
             b1=score>bestScore
             b2=score>=bestScore
             if(choice([b1,b2])):
@@ -60,12 +60,12 @@ def computeMove(board,depth=0,isComputer=True):
             board[move]=' '
         return bestScore,bestMove
     else:
-        bestScore=9
+        bestScore=float("inf")
         bestMove=None        
         possibleMoves=[i for i,el in enumerate(board) if el==' ']
         for move in possibleMoves:
             board[move]='X'
-            score=computeMove(board,depth+1,True)[0]
+            score=computeMoveMinimax(board,depth+1,True)[0]
             b1=score<bestScore
             b2=score<=bestScore
             if(choice([b1,b2])):
@@ -73,7 +73,48 @@ def computeMove(board,depth=0,isComputer=True):
                 bestMove=move
             board[move]=' '
         return bestScore,bestMove
-            
+
+
+def computeMoveAlphaBetaPruning(board,depth=0,alpha=-float("inf"),beta=float("inf"),isComputer=True):
+    if gameOver(board,'X'):
+        return (-10+depth,None)
+    elif gameOver(board,'O'):
+        return (10-depth,None)        
+    elif boardFilled(board):
+        return (0,None)
+    if isComputer:
+        bestScore=-float("inf")
+        bestMove=None
+        possibleMoves=[i for i,el in enumerate(board) if el==' ']
+        # print(possibleMoves)
+        for move in possibleMoves:
+            board[move]='O'
+            # print(f'Computer Trying O at {move}')
+            score=computeMoveAlphaBetaPruning(board,depth+1,alpha,beta,False)[0]
+            if(score>bestScore):
+                bestScore=score
+                bestMove=move
+            alpha=max(alpha,bestScore)
+            board[move]=' '
+            if alpha>=beta:
+                break
+        return bestScore,bestMove
+    else:
+        bestScore=float("inf")
+        bestMove=None        
+        possibleMoves=[i for i,el in enumerate(board) if el==' ']
+        for move in possibleMoves:
+            board[move]='X'
+            score=computeMoveAlphaBetaPruning(board,depth+1,alpha,beta,True)[0]
+            if(score<bestScore):
+                bestScore=score
+                bestMove=move
+            beta=min(beta,bestScore)
+            board[move]=' '
+            if beta<=alpha:
+                break
+        return bestScore,bestMove
+
 
     
 def takeMove():
@@ -90,7 +131,11 @@ def takeMove():
 def playGame(board):
     while True:
         pMove=takeMove()
-        board[pMove]='X'
+        availableMoves=[i for i,el in enumerate(board) if el==' ']
+        if pMove in availableMoves:
+            board[pMove]='X'
+        else:
+            continue
         if gameOver(board,'O'):
             printBoard(board)
             print("COMPUTER WON")
@@ -104,8 +149,8 @@ def playGame(board):
             print("TIE")
             break
         printBoard(board)
-        cMove=computeMove(board)[1]
-        print(f"Computer Moved {cMove}")
+        cMove=computeMoveAlphaBetaPruning(board)[1]
+        print(f"Computer Moved {cMove+1}")
         board[cMove]='O'
         if gameOver(board,'O'):
             printBoard(board)
@@ -124,6 +169,3 @@ def playGame(board):
         
 if __name__ == "__main__":
     playGame(board)
-    # b=['O','X','X','O','O','X',' ',' ','X']
-    # printBoard(b)
-    # print(gameOver(b,'X'))
